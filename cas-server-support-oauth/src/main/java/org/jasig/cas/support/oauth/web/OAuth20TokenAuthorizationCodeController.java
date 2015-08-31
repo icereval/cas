@@ -43,9 +43,9 @@ import java.util.concurrent.TimeUnit;
  * @author Jerome Leleu
  * @since 3.5.0
  */
-public final class OAuth20AccessTokenController extends AbstractController {
+public final class OAuth20TokenAuthorizationCodeController extends AbstractController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OAuth20AccessTokenController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OAuth20TokenAuthorizationCodeController.class);
 
     private final ServicesManager servicesManager;
 
@@ -60,8 +60,8 @@ public final class OAuth20AccessTokenController extends AbstractController {
      * @param ticketRegistry the ticket registry
      * @param timeout the timeout
      */
-    public OAuth20AccessTokenController(final ServicesManager servicesManager, final TicketRegistry ticketRegistry,
-            final long timeout) {
+    public OAuth20TokenAuthorizationCodeController(final ServicesManager servicesManager, final TicketRegistry ticketRegistry,
+                                                   final long timeout) {
         this.servicesManager = servicesManager;
         this.ticketRegistry = ticketRegistry;
         this.timeout = timeout;

@@ -30,12 +30,12 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * This class tests the {@link OAuth20CallbackAuthorizeController} class.
+ * This class tests the {@link OAuth20AuthorizeCallbackController} class.
  *
  * @author Jerome Leleu
  * @since 3.5.2
  */
-public final class OAuth20CallbackAuthorizeControllerTests {
+public final class OAuth20AuthorizeCallbackControllerTests {
 
     private static final String CONTEXT = "/oauth2.0/";
 

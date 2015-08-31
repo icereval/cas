@@ -40,9 +40,9 @@ import java.util.Map;
  * @author Jerome Leleu
  * @since 3.5.0
  */
-public final class OAuth20CallbackAuthorizeController extends AbstractController {
+public final class OAuth20AuthorizeCallbackController extends AbstractController {
 
-    private final Logger logger = LoggerFactory.getLogger(OAuth20CallbackAuthorizeController.class);
+    private final Logger logger = LoggerFactory.getLogger(OAuth20AuthorizeCallbackController.class);
 
     @Override
     protected ModelAndView handleRequestInternal(final HttpServletRequest request, final HttpServletResponse response)

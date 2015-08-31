@@ -40,12 +40,12 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 /**
- * This class tests the {@link OAuth20AccessTokenController} class.
+ * This class tests the {@link OAuth20TokenAuthorizationCodeController} class.
  *
  * @author Jerome Leleu
  * @since 3.5.2
  */
-public final class OAuth20AccessTokenControllerTests {
+public final class OAuth20TokenAuthorizationCodeControllerTests {
 
     private static final String CONTEXT = "/oauth2.0/";
 
@@ -68,7 +68,7 @@ public final class OAuth20AccessTokenControllerTests {
     @Test
     public void verifyNoClientId() throws Exception {
         final MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", CONTEXT
-                + OAuthConstants.ACCESS_TOKEN_URL);
+                + OAuthConstants.TOKEN_URL);
         mockRequest.setParameter(OAuthConstants.REDIRECT_URI, REDIRECT_URI);
         mockRequest.setParameter(OAuthConstants.CLIENT_SECRET, CLIENT_SECRET);
         mockRequest.setParameter(OAuthConstants.CODE, CODE);
@@ -83,7 +83,7 @@ public final class OAuth20AccessTokenControllerTests {
     @Test
     public void verifyNoRedirectUri() throws Exception {
         final MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", CONTEXT
-                + OAuthConstants.ACCESS_TOKEN_URL);
+                + OAuthConstants.TOKEN_URL);
         mockRequest.setParameter(OAuthConstants.CLIENT_ID, CLIENT_ID);
         mockRequest.setParameter(OAuthConstants.CLIENT_SECRET, CLIENT_SECRET);
         mockRequest.setParameter(OAuthConstants.CODE, CODE);
@@ -98,7 +98,7 @@ public final class OAuth20AccessTokenControllerTests {
     @Test
     public void verifyNoClientSecret() throws Exception {
         final MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", CONTEXT
-                + OAuthConstants.ACCESS_TOKEN_URL);
+                + OAuthConstants.TOKEN_URL);
         mockRequest.setParameter(OAuthConstants.CLIENT_ID, CLIENT_ID);
         mockRequest.setParameter(OAuthConstants.REDIRECT_URI, REDIRECT_URI);
         mockRequest.setParameter(OAuthConstants.CODE, CODE);
@@ -113,7 +113,7 @@ public final class OAuth20AccessTokenControllerTests {
     @Test
     public void verifyNoCode() throws Exception {
         final MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", CONTEXT
-                + OAuthConstants.ACCESS_TOKEN_URL);
+                + OAuthConstants.TOKEN_URL);
         mockRequest.setParameter(OAuthConstants.CLIENT_ID, CLIENT_ID);
         mockRequest.setParameter(OAuthConstants.REDIRECT_URI, REDIRECT_URI);
         mockRequest.setParameter(OAuthConstants.CLIENT_SECRET, CLIENT_SECRET);
@@ -128,7 +128,7 @@ public final class OAuth20AccessTokenControllerTests {
     @Test
     public void verifyNoCasService() throws Exception {
         final MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", CONTEXT
-                + OAuthConstants.ACCESS_TOKEN_URL);
+                + OAuthConstants.TOKEN_URL);
         mockRequest.setParameter(OAuthConstants.CLIENT_ID, CLIENT_ID);
         mockRequest.setParameter(OAuthConstants.REDIRECT_URI, REDIRECT_URI);
         mockRequest.setParameter(OAuthConstants.CLIENT_SECRET, CLIENT_SECRET);
@@ -147,7 +147,7 @@ public final class OAuth20AccessTokenControllerTests {
     @Test
     public void verifyRedirectUriDoesNotStartWithServiceId() throws Exception {
         final MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", CONTEXT
-                + OAuthConstants.ACCESS_TOKEN_URL);
+                + OAuthConstants.TOKEN_URL);
         mockRequest.setParameter(OAuthConstants.CLIENT_ID, CLIENT_ID);
         mockRequest.setParameter(OAuthConstants.REDIRECT_URI, REDIRECT_URI);
         mockRequest.setParameter(OAuthConstants.CLIENT_SECRET, CLIENT_SECRET);
@@ -168,7 +168,7 @@ public final class OAuth20AccessTokenControllerTests {
     @Test
     public void verifyWrongSecret() throws Exception {
         final MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", CONTEXT
-                + OAuthConstants.ACCESS_TOKEN_URL);
+                + OAuthConstants.TOKEN_URL);
         mockRequest.setParameter(OAuthConstants.CLIENT_ID, CLIENT_ID);
         mockRequest.setParameter(OAuthConstants.REDIRECT_URI, REDIRECT_URI);
         mockRequest.setParameter(OAuthConstants.CLIENT_SECRET, CLIENT_SECRET);
@@ -189,7 +189,7 @@ public final class OAuth20AccessTokenControllerTests {
     @Test
     public void verifyNoServiceTicket() throws Exception {
         final MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", CONTEXT
-                + OAuthConstants.ACCESS_TOKEN_URL);
+                + OAuthConstants.TOKEN_URL);
         mockRequest.setParameter(OAuthConstants.CLIENT_ID, CLIENT_ID);
         mockRequest.setParameter(OAuthConstants.REDIRECT_URI, REDIRECT_URI);
         mockRequest.setParameter(OAuthConstants.CLIENT_SECRET, CLIENT_SECRET);
@@ -213,7 +213,7 @@ public final class OAuth20AccessTokenControllerTests {
     @Test
     public void verifyExpiredServiceTicket() throws Exception {
         final MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", CONTEXT
-                + OAuthConstants.ACCESS_TOKEN_URL);
+                + OAuthConstants.TOKEN_URL);
         mockRequest.setParameter(OAuthConstants.CLIENT_ID, CLIENT_ID);
         mockRequest.setParameter(OAuthConstants.REDIRECT_URI, REDIRECT_URI);
         mockRequest.setParameter(OAuthConstants.CLIENT_SECRET, CLIENT_SECRET);
@@ -239,7 +239,7 @@ public final class OAuth20AccessTokenControllerTests {
     @Test
     public void verifyOK() throws Exception {
         final MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", CONTEXT
-                + OAuthConstants.ACCESS_TOKEN_URL);
+                + OAuthConstants.TOKEN_URL);
         mockRequest.setParameter(OAuthConstants.CLIENT_ID, CLIENT_ID);
         mockRequest.setParameter(OAuthConstants.REDIRECT_URI, REDIRECT_URI);
         mockRequest.setParameter(OAuthConstants.CLIENT_SECRET, CLIENT_SECRET);

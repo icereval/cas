@@ -40,17 +40,17 @@ public final class OAuth20WrapperController extends BaseOAuthWrapperController i
 
     private AbstractController authorizeController;
 
-    private AbstractController callbackAuthorizeController;
+    private AbstractController authorizeCallbackController;
 
-    private AbstractController accessTokenController;
+    private AbstractController tokenAuthorizationCodeController;
 
     private AbstractController profileController;
 
     @Override
     public void afterPropertiesSet() throws Exception {
         authorizeController = new OAuth20AuthorizeController(servicesManager, loginUrl);
-        callbackAuthorizeController = new OAuth20CallbackAuthorizeController();
-        accessTokenController = new OAuth20AccessTokenController(servicesManager, ticketRegistry, timeout);
+        authorizeCallbackController = new OAuth20AuthorizeCallbackController();
+        tokenAuthorizationCodeController = new OAuth20TokenAuthorizationCodeController(servicesManager, ticketRegistry, timeout);
         profileController = new OAuth20ProfileController(ticketRegistry);
     }
 
@@ -64,11 +64,11 @@ public final class OAuth20WrapperController extends BaseOAuthWrapperController i
         }
         // callback on authorize
         if (OAuthConstants.CALLBACK_AUTHORIZE_URL.equals(method)) {
-            return callbackAuthorizeController.handleRequest(request, response);
+            return authorizeCallbackController.handleRequest(request, response);
         }
-        //get access token
-        if (OAuthConstants.ACCESS_TOKEN_URL.equals(method)) {
-            return accessTokenController.handleRequest(request, response);
+        // get access token
+        if (OAuthConstants.TOKEN_URL.equals(method)) {
+            return tokenAuthorizationCodeController.handleRequest(request, response);
         }
         // get profile
         if (OAuthConstants.PROFILE_URL.equals(method)) {
