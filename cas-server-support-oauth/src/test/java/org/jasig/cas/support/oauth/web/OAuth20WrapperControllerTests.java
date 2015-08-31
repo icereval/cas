@@ -20,6 +20,7 @@ package org.jasig.cas.support.oauth.web;
 
 import static org.junit.Assert.assertEquals;
 
+import org.apache.http.HttpStatus;
 import org.jasig.cas.support.oauth.OAuthConstants;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -38,10 +39,14 @@ public class OAuth20WrapperControllerTests {
     @Test
     public void verifyWrongMethod() throws Exception {
         final MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", CONTEXT + "wrongmethod");
+
         final MockHttpServletResponse mockResponse = new MockHttpServletResponse();
+
         final OAuth20WrapperController oauth20WrapperController = new OAuth20WrapperController();
         oauth20WrapperController.handleRequest(mockRequest, mockResponse);
-        assertEquals(200, mockResponse.getStatus());
+
+        assertEquals(HttpStatus.SC_BAD_REQUEST, mockResponse.getStatus());
+        assertEquals("text/plain", mockResponse.getContentType());
         assertEquals("error=" + OAuthConstants.INVALID_REQUEST, mockResponse.getContentAsString());
     }
 }

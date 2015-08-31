@@ -49,6 +49,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.jasig.cas</groupId>
+            <artifactId>cas-server-webapp-support</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>

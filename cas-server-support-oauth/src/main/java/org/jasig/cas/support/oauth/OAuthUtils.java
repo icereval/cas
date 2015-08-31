@@ -18,6 +18,9 @@
  */
 package org.jasig.cas.support.oauth;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.jasig.cas.services.RegisteredService;
 import org.jasig.cas.services.ServicesManager;
@@ -31,7 +34,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * This class has some usefull methods to output data in plain text,
@@ -44,10 +49,32 @@ public final class OAuthUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OAuthUtils.class);
 
+    private final JsonFactory jsonFactory = new JsonFactory(new ObjectMapper());
+
     /**
      * Instantiates a new OAuth utils.
      */
     private OAuthUtils() {
+    }
+
+    /**
+     * Write to the output this error as json and return a null view.
+     *
+     * @param response http response
+     * @param error error message
+     * @param status status code
+     * @return a null view
+     */
+    public static ModelAndView writeJsonError(final HttpServletResponse response, final String error, final int status) {
+        final Map<String, String> map = new HashMap<>();
+        map.put("error", error);
+        try {
+            response.setContentType("application/json");
+            return writeText(response, new ObjectMapper().writeValueAsString(map), status);
+        } catch (final JsonProcessingException e) {
+            LOGGER.error("Failed to write to json error to response", e);
+        }
+        return null;
     }
 
     /**
@@ -59,6 +86,7 @@ public final class OAuthUtils {
      * @return a null view
      */
     public static ModelAndView writeTextError(final HttpServletResponse response, final String error, final int status) {
+        response.setContentType("text/plain");
         return OAuthUtils.writeText(response, "error=" + error, status);
     }
 

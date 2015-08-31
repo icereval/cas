@@ -24,11 +24,8 @@ import org.apache.http.HttpStatus;
 import org.jasig.cas.support.oauth.CentralOAuthService;
 import org.jasig.cas.support.oauth.OAuthConstants;
 import org.jasig.cas.support.oauth.OAuthUtils;
-import org.jasig.cas.support.oauth.services.OAuthRegisteredService;
 import org.jasig.cas.support.oauth.token.AccessToken;
-import org.jasig.cas.support.oauth.token.AuthorizationCode;
 import org.jasig.cas.support.oauth.token.RefreshToken;
-import org.jasig.cas.support.oauth.token.TokenType;
 import org.jasig.cas.ticket.InvalidTicketException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,29 +39,29 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This controller handles requests for grant type authorization code,
- * returning an access token which is the CAS service ticket and a refresh token
- * which is the CAS granting ticket according to the service and code (service ticket) given.
+ * This controller handles requests for grant type refresh token,
+ * returning an access token which is the CAS service ticket according
+ * to the service and refresh token (granting ticket) given.
  *
- * @author Jerome Leleu
  * @author Michael Haselton
  * @since 4.1.0
  */
-public final class OAuth20TokenAuthorizationCodeController extends AbstractController {
+public final class OAuth20TokenRefreshTokenController extends AbstractController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OAuth20TokenAuthorizationCodeController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OAuth20TokenRefreshTokenController.class);
 
     private final CentralOAuthService centralOAuthService;
 
-    private final Long timeout;
+    private final long timeout;
 
     /**
-     * Instantiates a new o auth20 grant type authorization code controller.
+     * Instantiates a new o auth20 grant type refresh token controller.
      *
      * @param centralOAuthService the central oauth service
      * @param timeout the timeout
      */
-    public OAuth20TokenAuthorizationCodeController(final CentralOAuthService centralOAuthService, final Long timeout) {
+    public OAuth20TokenRefreshTokenController(final CentralOAuthService centralOAuthService,
+                                              final long timeout) {
         this.centralOAuthService = centralOAuthService;
         this.timeout = timeout;
     }
@@ -72,8 +69,8 @@ public final class OAuth20TokenAuthorizationCodeController extends AbstractContr
     @Override
     protected ModelAndView handleRequestInternal(final HttpServletRequest request, final HttpServletResponse response)
             throws Exception {
-        final String code = request.getParameter(OAuthConstants.CODE);
-        LOGGER.debug("{} : {}", OAuthConstants.CODE, code);
+        final String refreshTokenId = request.getParameter(OAuthConstants.REFRESH_TOKEN);
+        LOGGER.debug("{} : {}", OAuthConstants.REFRESH_TOKEN, refreshTokenId);
 
         final String clientId = request.getParameter(OAuthConstants.CLIENT_ID);
         LOGGER.debug("{} : {}", OAuthConstants.CLIENT_ID, clientId);
@@ -81,49 +78,25 @@ public final class OAuth20TokenAuthorizationCodeController extends AbstractContr
         final String clientSecret = request.getParameter(OAuthConstants.CLIENT_SECRET);
         LOGGER.debug("{} : {}", OAuthConstants.CLIENT_SECRET, "*********");
 
-        final String redirectUri = request.getParameter(OAuthConstants.REDIRECT_URI);
-        LOGGER.debug("{} : {}", OAuthConstants.REDIRECT_URI, redirectUri);
+        final String grantType = request.getParameter(OAuthConstants.GRANT_TYPE);
+        LOGGER.debug("{} : {}", OAuthConstants.GRANT_TYPE, grantType);
 
-        if (!verifyRequest(redirectUri, clientId, clientSecret, code)) {
+        final boolean isVerified = verifyRequest(refreshTokenId, clientId, clientSecret, grantType);
+        if (!isVerified) {
             return OAuthUtils.writeJsonError(response, OAuthConstants.INVALID_REQUEST, HttpStatus.SC_BAD_REQUEST);
         }
 
-        final AuthorizationCode authorizationCode;
+        final RefreshToken refreshToken;
         try {
-            authorizationCode = centralOAuthService.getToken(code, AuthorizationCode.class);
+            refreshToken = centralOAuthService.getToken(refreshTokenId, RefreshToken.class);
         } catch (final InvalidTicketException e) {
-            LOGGER.error("Unknown {} : {}", OAuthConstants.AUTHORIZATION_CODE, code);
+            LOGGER.error("Invalid {} : {}", OAuthConstants.REFRESH_TOKEN, refreshTokenId);
             return OAuthUtils.writeJsonError(response, OAuthConstants.INVALID_REQUEST, HttpStatus.SC_BAD_REQUEST);
         }
 
-        final OAuthRegisteredService service = centralOAuthService.getRegisteredService(clientId);
-        if (service == null) {
-            LOGGER.error("Unknown {} : {}", OAuthConstants.CLIENT_ID, clientId);
-            return OAuthUtils.writeJsonError(response, OAuthConstants.INVALID_REQUEST, HttpStatus.SC_BAD_REQUEST);
-        }
-        if (!service.getClientSecret().equals(clientSecret)) {
-            LOGGER.error("Mismatched Client Secret parameters");
-            return OAuthUtils.writeJsonError(response, OAuthConstants.INVALID_REQUEST, HttpStatus.SC_BAD_REQUEST);
-        }
-        if (!redirectUri.matches(service.getServiceId())) {
-            LOGGER.error("Unsupported {} : {} for serviceId : {}", OAuthConstants.REDIRECT_URI, redirectUri, service.getServiceId());
-            return OAuthUtils.writeJsonError(response, OAuthConstants.INVALID_REQUEST, HttpStatus.SC_BAD_REQUEST);
-        }
+        final AccessToken accessToken = centralOAuthService.grantOfflineAccessToken(refreshToken);
 
         final Map<String, Object> map = new HashMap<>();
-
-        final AccessToken accessToken;
-        if (authorizationCode.getType() == TokenType.OFFLINE) {
-            final RefreshToken refreshToken = centralOAuthService.grantOfflineRefreshToken(authorizationCode, redirectUri);
-            map.put(OAuthConstants.REFRESH_TOKEN, refreshToken.getId());
-
-            accessToken = centralOAuthService.grantOfflineAccessToken(refreshToken);
-        } else if (authorizationCode.getType() == TokenType.ONLINE) {
-            accessToken = centralOAuthService.grantOnlineAccessToken(authorizationCode);
-        } else {
-            return OAuthUtils.writeJsonError(response, OAuthConstants.INVALID_REQUEST, HttpStatus.SC_BAD_REQUEST);
-        }
-
         map.put(OAuthConstants.ACCESS_TOKEN, accessToken.getId());
         map.put(OAuthConstants.EXPIRES_IN,
                 (int) (timeout - TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - accessToken.getTicket().getCreationTime())));
@@ -138,16 +111,20 @@ public final class OAuth20TokenAuthorizationCodeController extends AbstractContr
     }
 
     /**
-     * Verify the request by reviewing the values of client id, redirect uri, client secret, code, etc.
+     * Verify the request by reviewing the values of client id, client secret, refresh token, etc.
      *
-     * @param redirectUri the redirect uri
+     * @param refreshTokenId the refresh token id
      * @param clientId the client id
      * @param clientSecret the client secret
-     * @param code the code
+     * @param grantType the grant type
      * @return true, if successful
      */
-    private boolean verifyRequest(final String redirectUri, final String clientId, final String clientSecret,
-                                  final String code) {
+    private boolean verifyRequest(final String refreshTokenId, final String clientId, final String clientSecret, final String grantType) {
+        // refreshToken is required
+        if (StringUtils.isBlank(refreshTokenId)) {
+            LOGGER.error("Missing {}", OAuthConstants.REFRESH_TOKEN);
+            return false;
+        }
         // clientId is required
         if (StringUtils.isBlank(clientId)) {
             LOGGER.error("Missing {}", OAuthConstants.CLIENT_ID);
@@ -158,14 +135,13 @@ public final class OAuth20TokenAuthorizationCodeController extends AbstractContr
             LOGGER.error("Missing {}", OAuthConstants.CLIENT_SECRET);
             return false;
         }
-        // code is required
-        if (StringUtils.isBlank(code)) {
-            LOGGER.error("Missing {}", OAuthConstants.CODE);
+        // grantType is required
+        if (StringUtils.isBlank(grantType)) {
+            LOGGER.error("Missing {}", OAuthConstants.GRANT_TYPE);
             return false;
         }
-        // redirectUri is required
-        if (StringUtils.isBlank(redirectUri)) {
-            LOGGER.error("Missing {}", OAuthConstants.REDIRECT_URI);
+        if (!grantType.equalsIgnoreCase(OAuthConstants.REFRESH_TOKEN)) {
+            LOGGER.error("Invalid {} : {}", OAuthConstants.GRANT_TYPE, grantType);
             return false;
         }
 
